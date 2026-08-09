@@ -5,8 +5,7 @@ difftastic, diff-so-fancy, …) annotates each rendered line of a diff with the
 patch-space identity it represents, so that a host program running the renderer
 can map a screen row back to the exact line of the underlying diff.
 
-The first version of the specification is being added
-[here](https://github.com/stefanhaller/diff-line-metadata-spec/pull/1).
+**→ [Read the specification](diff-line-metadata-osc-1717.md)** — draft, v1.
 
 ## Why
 
@@ -36,8 +35,7 @@ a CI log) emits nothing and behaves byte-for-byte as before.
 number itself are all open to revision — §9 of the spec lists the points where
 feedback is most wanted, starting with the choice of `1717` (verified unused
 across the terminals that matter, but there is no registry, so it is not
-_allocated_). Nothing is finalized; please comment on
-https://github.com/stefanhaller/diff-line-metadata-spec/pull/1.
+_allocated_). Nothing is finalized; please open an issue.
 
 Prototype implementations are open as draft pull requests — emitters for
 [delta](https://github.com/dandavison/delta/pull/2181),
