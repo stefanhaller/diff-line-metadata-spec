@@ -1,14 +1,10 @@
-# Diff Line Metadata over OSC 1717 — draft specification (v1)
+# Diff Line Metadata over OSC 1717 — Specification (v1)
 
-**Status: draft, for feedback.** This document describes a small terminal
-escape-sequence protocol by which a diff renderer (delta, difftastic, diff-so-fancy,
-…) annotates each rendered line of a diff with the patch-space identity it
-represents, so that a host program rendering the diff renderer's output can map a screen
-row (and column) back to _the exact line in the underlying diff_.
-
-It is published to gather feedback from diff renderer authors before anything is
-finalized. The wire format, the negotiation handshake, and the OSC number are all
-open to revision — §9 lists the points where feedback is most wanted.
+This document describes a small terminal escape-sequence protocol by which a
+diff renderer (delta, difftastic, diff-so-fancy, …) annotates each rendered line
+of a diff with the patch-space identity it represents, so that a host program
+rendering the diff renderer's output can map a screen row (and column) back to
+_the exact line in the underlying diff_.
 
 The protocol grew out of [lazygit](https://github.com/jesseduffield/lazygit), but
 nothing in it is lazygit-specific; "the host" below means any program that runs a
@@ -95,8 +91,6 @@ Why a handshake, and why it must exist in v1 even though v1's payload is tiny:
 - **It guarantees zero cost when unwanted.** Outside a participating host the
   variable is unset, so there is no output change to audit, no risk in a raw
   terminal, no interference with `less`/`tmux`/pipelines.
-
-The variable name and the value grammar are themselves open to feedback (§9).
 
 ---
 
@@ -544,62 +538,27 @@ describe rows that exist:
 Both are inherent to a renderer whose diff model is coarser than git's in the
 whitespace dimension; a host that needs those changes falls back on the raw
 diff. A `modified`/`m` type — "aligned, changed, present on both sides" — remains
-a v2 candidate (§9): it would name a single-row modification in one record
-rather than a back-to-back pair, but splits the clean `c`/`a`/`d` mapping, and
-the pair already carries both identities.
+a v2 candidate: it would name a single-row modification in one record rather than
+a back-to-back pair, but splits the clean `c`/`a`/`d` mapping, and the pair
+already carries both identities.
 
 ---
 
-## 9. Where feedback is most wanted
+## 9. Reference implementations
 
-1. **The OSC number, `1717`.** Chosen after auditing the OSC allocations of
-   xterm, VTE, kitty, foot, WezTerm, iTerm2, Windows Terminal, Ghostty, VS Code,
-   ConEmu and urxvt (see the appendix): `1717` is unused by all of them and sits
-   in the large empty 1400–5000 band (only iTerm2's `1337` is nearby). There is no
-   central registry, so this is "verified unused across the terminals that matter,"
-   not "allocated." If you know of a terminal that interprets `1717`, please say so.
-2. **The env-var name and grammar** (`OSC1717=V1,…`).
-3. **The token-vs-line mismatch** (§8) — v1 resolves it by classifying in patch
-   space (a content-differing aligned pair is `d`+`a`, emitted together when only
-   one row renders it). Is the back-to-back pair right, or should a v2 `m` type
-   name the single-row modification directly?
-4. **Can your diff renderer actually produce all four fields per region?** In particular
-   the side for deleted lines, and in side-by-side mode. (delta needed to track
-   its own old/new counters because its line-number counters are dormant unless
-   `--line-numbers` is on; difftastic had them natively. Your mileage may vary.)
-5. **The header types' fixed payloads (§5.5).** `f` never carries a line number,
-   `h` always does, and a combined file+hunk row emits both records. This shape
-   came out of prototyping in delta and difftastic: delta streams and draws its
-   file header before it has parsed the first `@@` (so `f` cannot promise a
-   line), while every renderer knows a hunk's start line at its hunk header (so
-   `h` can); difftastic's per-hunk banner is both headers at once (so combined
-   rows emit both). Does this fit your renderer — do you have a header shape
-   where `h`'s line number is _not_ in hand, or a combined row the both-records
-   rule doesn't cover?
+Three diff renderer emitters and one host carrier emit or consume the v1 format
+described here, over OSC `1717`:
 
----
-
-## 10. Reference implementations (prototype)
-
-Three diff renderer emitters and one host carrier, all at prototype quality, emit or
-consume the v1 format described here, over OSC `1717`. Each is open as a draft
-pull request against its upstream project:
-
-- **delta** ([draft PR](https://github.com/dandavison/delta/pull/2181)) — a dedicated additive emitter that injects only OSC bytes (no change
+- **delta** — a dedicated additive emitter that injects only OSC bytes (no change
   to styling, width, or wrapping); with the env var unset, output is byte-for-byte
   identical to stock delta. Covers unified and side-by-side modes, including
   wrapped rows, and the multi-row file/hunk-header decorations (every row of a
   header block carries its `f`/`h` — §6.4; delta's `f` is the case that cannot
   carry a line number, §5.5).
-- **difftastic** ([draft PR](https://github.com/Wilfred/difftastic/pull/1014)) — the categorical case (#1 host-side parsing cannot serve it in
-  either mode). Emits the same v1 format under the same handshake; markedly less
-  code than delta because difftastic carries old/new line numbers natively. Covers
-  side-by-side and inline modes, classifying in patch space by comparing the
-  aligned lines' contents (§5.1/§8) — its collapsed single-column rows are where
-  the back-to-back `d`+`a` of §6.2 comes from. Its per-hunk banner is the combined
-  file+hunk header of §5.5: the first hunk's banner carries `f` and `h`, later
-  banners `h`.
-- **diff-so-fancy** ([draft PR](https://github.com/so-fancy/diff-so-fancy/pull/538)) — the same #2 case as delta's default (it strips the `+`/`-`
+
+  Released in version 0.20.0.
+
+- **diff-so-fancy** — the same #2 case as delta's default (it strips the `+`/`-`
   markers and conveys the side by color), but a line-oriented Perl filter rather
   than a structured renderer, and the simplest of the three: unified single-column
   only (no side-by-side). Classifies each line by its leading `+`/`-` before its
@@ -610,16 +569,26 @@ pull request against its upstream project:
   diffs are not annotated. Because diff-so-fancy defensively strips terminal escape
   sequences from the content it renders, the record is _prepended_ to the line
   rather than embedded in it.
-- **host carrier** ([draft PR](https://github.com/jesseduffield/lazygit/pull/5732)) —
-  lazygit's terminal layer accumulates the OSC number, collects the payload, and
-  stamps it per-cell like a hyperlink, cleared at each
-  line boundary so it cannot bleed onto an untagged following line. A record
-  that no cell consumed — a zero-width region (§6.1), or a record right before
-  the line end — is kept in a content-less carrier cell, so a row's records
-  survive complete.
 
-A key validated property in all three renderers: **with the handshake absent, output
-is byte-identical to the unpatched renderer** — the protocol is strictly additive.
+  Released in version 1.4.14.
+
+- **difftastic** — the categorical case (#1 host-side parsing cannot serve it in
+  either mode). Emits the same v1 format under the same handshake; markedly less
+  code than delta because difftastic carries old/new line numbers natively. Covers
+  side-by-side and inline modes, classifying in patch space by comparing the
+  aligned lines' contents (§5.1/§8) — its collapsed single-column rows are where
+  the back-to-back `d`+`a` of §6.2 comes from. Its per-hunk banner is the combined
+  file+hunk header of §5.5: the first hunk's banner carries `f` and `h`, later
+  banners `h`.
+
+  Not released; maintained in [an open PR](https://github.com/Wilfred/difftastic/pull/1014).
+
+- **lazygit** — Supports the identical feature set with a conforming diff
+  renderer as it does with a raw git diff: navigating and staging diff hunks,
+  jumping to the selected line in the editor, preserving the scroll position
+  when changing the diff context, and many others.
+
+  Released in version 0.66.0.
 
 ---
 
