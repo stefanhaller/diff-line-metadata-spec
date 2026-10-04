@@ -33,7 +33,7 @@ user is pointing at:
 - **navigate by hunk or by file** within the rendered diff,
 - **preserve the scroll position and selection** across a re-render (the diff is
   re-rendered with a different context size, or a different renderer, and the host
-  wants to keep the user anchored on the same patch line).
+  wants to keep the scroll position anchored on the same patch line).
 
 Every one of these needs the same primitive: **given a rendered row, recover
 `(file, side, line)`** — the precise line of the unified diff that row stands for.
@@ -372,11 +372,11 @@ disambiguation.
 show an aligned changed row as _one_ column — difftastic collapses a hunk whose
 changes are all one-sided, printing a modified row's content once. The row still
 _represents_ both patch lines, so it carries the pair anyway: the `d`, then the
-`a`, emitted consecutively at the row's start (patch order — deletions first; the
-`d`'s region is zero-width, §6.1). This is what lets a host act on the whole
-change from the one row it can see — staging it stages both halves, exactly as
-for the two-column rendering of the same row. A collapsed _context_ row is one
-logical line and carries its `c` **once**, not per absent column.
+`a`, emitted consecutively at the row's start (patch order — deletions first;
+the `d`'s region is zero-width, §6.1). This lets a host act on the whole change
+from the one row it can see — staging it stages both halves, exactly as for the
+two-column rendering of the same row. A collapsed _context_ row is one logical
+line and carries its `c` **once**, not per absent column.
 
 ### 6.3 Wrapping — emit on every output row
 
