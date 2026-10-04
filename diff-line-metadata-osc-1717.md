@@ -14,12 +14,6 @@ The protocol grew out of [lazygit](https://github.com/jesseduffield/lazygit), bu
 nothing in it is lazygit-specific; "the host" below means any program that runs a
 diff renderer and consumes its output.
 
-About terminology: Lazygit has been using the term "pager" for what we call
-"diff renderer" here. This is incorrect, a pager is something like less; but
-it's unlikely to change soon, so be aware that the terms "pager" (or "custom
-pager") and "diff renderer" can be used interchangeably in some discussions
-about this. For the rest of this document, we avoid the term "pager" though.
-
 ---
 
 ## 1. Motivation — what this enables, and why parsing isn't enough
@@ -317,12 +311,6 @@ Two useful invariants follow from all of this:
   (§4.2) — still emit their `f`, so they stay visible to the identity layer:
   navigation can anchor on them and a file list includes them, even though there
   is no content to act on.
-
-(Hosts that consume only content records can still recover the structure without
-headers: the `file` field changes between consecutive content records at a file
-boundary, and within a file a `new-line` jump of more than one marks a new hunk —
-two consecutive deletions share a `new-line` by §5.3, so compute the gap from the
-last _advancing_ line. This remains valid, but it cannot see content-less files.)
 
 ---
 
