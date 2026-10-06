@@ -5,8 +5,7 @@ difftastic, diff-so-fancy, …) annotates each rendered line of a diff with the
 patch-space identity it represents, so that a host program running the renderer
 can map a screen row back to the exact line of the underlying diff.
 
-The first version of the specification is being added
-[here](https://github.com/stefanhaller/diff-line-metadata-spec/pull/1).
+**→ [Read the specification](diff-line-metadata-osc-1717.md)** — v1.
 
 ## Why
 
@@ -32,19 +31,9 @@ a CI log) emits nothing and behaves byte-for-byte as before.
 
 ## Status
 
-**Draft, circulating for feedback.** The wire format, the handshake and the OSC
-number itself are all open to revision — §9 of the spec lists the points where
-feedback is most wanted, starting with the choice of `1717` (verified unused
-across the terminals that matter, but there is no registry, so it is not
-_allocated_). Nothing is finalized; please comment on
-https://github.com/stefanhaller/diff-line-metadata-spec/pull/1.
+**Final, v1.**
 
-Prototype implementations are open as draft pull requests — emitters for
-[delta](https://github.com/dandavison/delta/pull/2181),
-[difftastic](https://github.com/Wilfred/difftastic/pull/1014) and
-[diff-so-fancy](https://github.com/so-fancy/diff-so-fancy/pull/538), and the
-consuming side in [lazygit](https://github.com/jesseduffield/lazygit/pull/5732);
-see §10 of the spec.
+Reference implementations exist; see §10 of the spec.
 
 The protocol grew out of [lazygit](https://github.com/jesseduffield/lazygit), but
 nothing in it is lazygit-specific — "the host" means any program that runs a diff
